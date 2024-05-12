@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recurrence Calculator</title>
+        <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            max-width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #333;
+        }
+
+        button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        p {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: {% if result_probability is not none %}{{ "red" if result_probability > 0.5 else "green" }}{% else %}#333{% endif %};
+        }
+
+        input[type="number"],
+        select {
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            border: 1px solid #3498db;
+            outline: none;
+        }
+
+        button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Recurrence Calculator</h1>
+    <form id="probabilityForm">
+
+        <label for="s2ALP">ALP:</label>
+        <select id="s2ALP" name="s2ALP" required>
+            <option value="0">Normal</option>
+            <option value="1">Raised</option>
+        </select><br>
+
+        <label for="s3Ctmorph">CT Morphology:</label>
+        <select id="s3Ctmorph" name="s3Ctmorph" required>
+            <option value="0">Mass and Thickening</option>
+            <option value="1">Infiltrative</option>
+        </select><br>
+
+        <label for="s4TStage">T-Stage:</label>
+        <select id="s4TStage" name="s4TStage" required>
+            <option value="0">T1 or T2</option>
+            <option value="1">T3</option>
+        </select><br>
+
+        <label for="s5NStage">N-Stage:</label>
+        <select id="s5NStage" name="s5NStage" required>
+            <option value="0">Negative</option>
+            <option value="1">Positive</option>
+        </select><br>
+
+        <label for="s6PNI">PNI:</label>
+        <select id="s6PNI" name="s6PNI" required>
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+        </select><br>
+
+        <label for="s7LVI">LVI:</label>
+        <select id="s7LVI" name="s7LVI" required>
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+        </select><br>
+
+        <button type="submit">Calculate Probability</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById("probabilityForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let formData = new FormData(event.target);
+
+            let s2ALP = parseFloat(formData.get("s2ALP"));
+            let s3Ctmorph = parseFloat(formData.get("s3Ctmorph"));
+            let s4TStage = parseFloat(formData.get("s4TStage"));
+            let s5NStage = parseFloat(formData.get("s5NStage"));
+            let s6PNI = parseFloat(formData.get("s6PNI"));
+            let s7LVI = parseFloat(formData.get("s7LVI"));
+
+            let resultProbability = calculateProbability(s2ALP, s3Ctmorph, s4TStage, s5NStage, s6PNI, s7LVI);
+            displayResult(resultProbability);
+        });
+
+        function calculateProbability(s2ALP, s3Ctmorph, s4TStage, s5NStage, s6PNI, s7LVI) {
+            let b0 = 4.3855;
+            let b1 = -2.1321;
+            let b2 = -4.7231;
+            let b3 = 2.6456;
+            let b4 = -2.1686;
+            let b5 = 0.7072;
+            let b6 = -2.2486;
+
+            let z = b0 + b1 * s2ALP + b2 * s3Ctmorph + b3 * s4TStage + b4 * s5NStage + b5 * s6PNI + b6 * s7LVI;
+            return 1 / (1 + Math.exp(-z));
+        }
+
+        function displayResult(probability) {
+            let resultElement = document.getElementById("result");
+            let color = probability > 0.6 ? "green" : "red";
+            let resultText = probability > 0.6 ? "No Recurrence" : "Early Recurrence";
+            resultText += " (" + (probability * 100).toFixed(2) + "%) ";
+            resultElement.innerText = resultText;
+            resultElement.style.color = color;
+        } 
+    </script>
+</body>
+</html>
